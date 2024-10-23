@@ -1,0 +1,29 @@
+name: Rebase nixos-unstable on upstream
+
+on:
+  schedule:
+    - cron: '27 4/6 * * *'
+
+permissions:
+  contents: write
+
+jobs:
+  rebase-unstable:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: nixos-unstable
+          fetch-depth: 0
+      - name: Pull from upstream
+        run: |
+          git remote add upstream https://github.com/NixOS/nixpkgs.git
+          git fetch upstream nixos-unstable
+      - name: Rebase onto upstream
+        run: |
+          git config --global user.email "nixpkgsupdater@noreply.gitea.hillion.co.uk"
+          git config --global user.name "Hillion nixpkgs Updater"
+          git rebase upstream/nixos-unstable
+      - name: Push result
+        run: git push --force
