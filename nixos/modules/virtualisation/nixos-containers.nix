@@ -147,6 +147,10 @@ let
       IFS=$OIFS
     fi
 
+    if [ "$COPY_RESOLV_CONF" = 1 ]; then
+      cp --remove-destination /etc/resolv.conf "$root/etc/resolv.conf"
+    fi
+
     if [ -n "$HOST_BRIDGE" ]; then
       extraFlags+=("--network-bridge=$HOST_BRIDGE")
     fi
@@ -673,6 +677,14 @@ in
                 '';
               };
 
+              copyResolvConf = mkOption {
+                type = types.bool;
+                default = true;
+                description = ''
+                  Whether to copy host /etc/resolv.conf into the container.
+                '';
+              };
+
               privateNetwork = mkOption {
                 type = types.bool;
                 default = false;
@@ -1045,6 +1057,7 @@ in
             nameValuePair "${configurationDirectoryName}/${name}.conf" {
               text = ''
                 SYSTEM_PATH=${cfg.path}
+                COPY_RESOLV_CONF=${if cfg.copyResolvConf then "1" else "0"}
                 ${optionalString cfg.privateNetwork ''
                   PRIVATE_NETWORK=1
                   ${optionalString (cfg.hostBridge != null) ''
