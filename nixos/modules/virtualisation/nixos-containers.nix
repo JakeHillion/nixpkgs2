@@ -107,7 +107,9 @@ let
         "/nix/var/nix/profiles/per-container/$INSTANCE" \
         "/nix/var/nix/gcroots/per-container/$INSTANCE"
 
-      cp --remove-destination /etc/resolv.conf "$root/etc/resolv.conf"
+      if [ "$COPY_RESOLV_CONF" = 1 ]; then
+        cp --remove-destination /etc/resolv.conf "$root/etc/resolv.conf"
+      fi
 
       declare -a extraFlags
 
@@ -622,6 +624,14 @@ in
               '';
             };
 
+            copyResolvConf = mkOption {
+              type = types.bool;
+              default = true;
+              description = ''
+                Whether to copy host /etc/resolv.conf into the container.
+              '';
+            };
+
             privateNetwork = mkOption {
               type = types.bool;
               default = false;
@@ -899,6 +909,7 @@ in
         { text =
             ''
               SYSTEM_PATH=${cfg.path}
+              COPY_RESOLV_CONF=${if cfg.copyResolvConf then "1" else "0"}
               ${optionalString cfg.privateNetwork ''
                 PRIVATE_NETWORK=1
                 ${optionalString (cfg.hostBridge != null) ''
