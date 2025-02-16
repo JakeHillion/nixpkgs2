@@ -1,6 +1,9 @@
 name: Rebase nixos-unstable on upstream
 
 on:
+  push:
+    branches:
+      - main
   schedule:
     - cron: '27 4/6 * * *'
 
@@ -26,4 +29,8 @@ jobs:
           git config --global user.name "Hillion nixpkgs Updater"
           git rebase upstream/nixos-unstable
       - name: Push result
-        run: git push --force
+        run: |
+          [ "$(git rev-parse HEAD)" = "$(git rev-parse origin/nixos-unstable)" ] && echo "No changes made" && exit || true
+          git tag "rebase-unstable-$GITHUB_RUN_NUMBER"
+          git push origin "rebase-unstable-$GITHUB_RUN_NUMBER"
+          git push --force
